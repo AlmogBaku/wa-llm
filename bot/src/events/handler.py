@@ -2,7 +2,7 @@ from typing import Callable, List
 
 from loguru import logger
 
-from ..handlers.cmds import CommandResult, ack_cmd
+from ..events.cmds import CommandResult, ack_cmd
 from ..jid import parse_jid, JID
 from ..proto.msg_event_pb2 import MessageEvent
 from ..proto.wa_handler_pb2 import Event, AccountContext
