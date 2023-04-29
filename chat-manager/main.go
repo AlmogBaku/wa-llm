@@ -1,6 +1,8 @@
 package main
 
 import (
+	"chat-manager/manager"
+	"chat-manager/proto"
 	"context"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
@@ -9,35 +11,17 @@ import (
 	"go.mau.fi/whatsmeow/store/sqlstore"
 	waLog "go.mau.fi/whatsmeow/util/log"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/local"
+	"google.golang.org/grpc/reflection"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
-	"wa-group-admin/bot"
-	"wa-group-admin/proto"
 )
 
-const socket = "/tmp/wa-python-handler.sock"
-
 func main() {
-	// check if the socket exists
-	if _, err := os.Stat(socket); os.IsNotExist(err) {
-		panic(fmt.Errorf("socket %s does not exist", socket))
-	}
-
-	cc, err := grpc.Dial(
-		fmt.Sprintf("unix://%s", socket),
-		grpc.WithTransportCredentials(local.NewCredentials()),
-	)
-	if err != nil {
-		panic(fmt.Errorf("failed to connect to socket: %w", err))
-	}
-
-	handlerRt := proto.NewHandlerClient(cc)
-
 	dbLog := waLog.Stdout("Database", "DEBUG", true)
 	// Make sure you add appropriate DB connector imports, e.g. github.com/mattn/go-sqlite3 for SQLite
-	store, err := sqlstore.New("sqlite3", "file:examplestore.db?_foreign_keys=on", dbLog)
+	store, err := sqlstore.New("sqlite3", "file:wa-store.db?_foreign_keys=on", dbLog)
 	if err != nil {
 		panic(err)
 	}
@@ -74,11 +58,45 @@ func main() {
 
 	defer client.Disconnect()
 
-	bot := bot.New(handlerRt, client, waLog.Stdout("bot", "DEBUG", true))
+	bot := manager.New(client, waLog.Stdout("bot", "DEBUG", true))
 	client.AddEventHandler(bot.EventHandler)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		err := serve(ctx, bot)
+		if err != nil {
+			fmt.Println("got error", err)
+		}
+	}()
 
 	// Listen to Ctrl+C (you can also do something else that prevents the program from exiting)
-	c := make(chan os.Signal)
+	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	<-c
+}
+
+func serve(ctx context.Context, bot manager.ChatManager) error {
+	uds := "/tmp/chat-mgr.sock"
+	if _, err := os.Stat(uds); err == nil {
+		if err := os.RemoveAll(uds); err != nil {
+			return fmt.Errorf("failed to remove uds file: %w", err)
+		}
+	}
+
+	l, err := net.Listen("unix", uds)
+	if err != nil {
+		return fmt.Errorf("failed to listen on socket: %w", err)
+	}
+
+	server := grpc.NewServer()
+	proto.RegisterChatManagerServer(server, bot)
+	reflection.Register(server)
+
+	go func() {
+		<-ctx.Done()
+		server.Stop()
+	}()
+
+	fmt.Println("starting server at", uds)
+	return server.Serve(l)
 }

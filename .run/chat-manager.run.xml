@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="chat-manager" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="wa-group-admin" />
+    <working_directory value="$PROJECT_DIR$" />
+    <go_parameters value="-ldflags &quot;-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore&quot;" />
+    <kind value="FILE" />
+    <package value="wa-group-admin" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/chat-manager/main.go" />
+    <method v="2" />
+  </configuration>
+</component>

@@ -1,4 +1,4 @@
-module wa-group-admin
+module chat-manager
 
 go 1.20
 

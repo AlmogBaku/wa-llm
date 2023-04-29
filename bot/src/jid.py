@@ -39,7 +39,7 @@ def new_ad_jid(user: str, agent: int, device: int) -> JID:
 
 
 def parse_ad_jid(user: str) -> Tuple[JID, Union[None, str]]:
-    full_jid = JID(ad=True, server=DefaultUserServer)
+    full_jid = JID(user="", ad=True, server=DefaultUserServer)
     dot_index = user.find('.')
     colon_index = user.find(':')
 
@@ -84,7 +84,7 @@ BroadcastServer = "broadcast"
 HiddenUserServer = "lid"
 
 # Some JIDs that are contacted often
-EmptyJID = JID()
+EmptyJID = JID(user="")
 GroupServerJID = new_jid("", GroupServer)
 ServerJID = new_jid("", DefaultUserServer)
 BroadcastServerJID = new_jid("", BroadcastServer)

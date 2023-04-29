@@ -18,13 +18,17 @@ help: ## Display this help.
 
 ##@ Development
 
-.PHONY: generate-python-model
-generate-python-model: ## Generate python model
-	@echo "Generating python model"
-	go run schema-gen/main.go > schema-gen/events.Message.schema.json
-	datamodel-codegen --input schema-gen/events.Message.schema.json --input-file-type jsonschema --output python/model/events.message.py
-
 .PHONY: download-wa-protobuf
 download-wa-protobuf: ## Download whatsapp protobuf
 	@echo "Downloading whatsapp protobuf"
 	curl -L https://raw.githubusercontent.com/tulir/whatsmeow/main/binary/proto/def.proto > proto/wa-def.proto
+
+.PHONY: build-proto
+build-proto: ## Build protobuf
+	@echo "Building protobuf"
+	buf generate
+
+.PHONY: build-chat-manager
+build-chat-manager: build-proto ## Build chat manager
+	@echo "Building chat manager"
+	go build -ldflags "-s -w -X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o out/chat-manager cmd/chat-manager/*.go

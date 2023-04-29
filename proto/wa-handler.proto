@@ -7,8 +7,8 @@ import "google/protobuf/timestamp.proto";
 import "proto/wa-def.proto";
 
 message MessageSource {
-    string chat = 1;
-    string sender = 2;
+    string chat = 1; // jid
+    string sender = 2; // jid
     bool is_from_me = 3;
     bool is_group = 4;
     string broadcast_list_owner = 5;
@@ -21,7 +21,7 @@ message DeviceSentMeta {
 
 message MessageInfo {
     MessageSource message_source = 1;
-    string id = 2;
+    string id = 2; // message id
     string type = 3;
     string push_name = 4;
     google.protobuf.Timestamp timestamp = 5;
@@ -42,21 +42,9 @@ message MessageEvent {
     bool is_edit = 8;
 }
 
-message Command {
-    enum Action {
-        NONE = 0;
-        SEND_MESSAGE = 1;
-    }
-    string uuid = 1;
-    Action action = 2;
-    string recipient = 3;
-
-    google.protobuf.Any payload = 5;
-}
-
 
 message AccountContext {
-    string id = 1;
+    string id = 1; // jid
     uint32 registration_id = 2;
     string platform = 3;
     string business_name = 4;
@@ -64,14 +52,45 @@ message AccountContext {
 }
 
 message Event {
-    string uuid = 1;
-    google.protobuf.Timestamp timestamp = 2;
-    AccountContext account_context = 3;
+    string subscription_id = 1;
+    string uuid = 2;
+    google.protobuf.Timestamp timestamp = 3;
+    AccountContext account_context = 4;
     oneof event {
-        MessageEvent message_event = 4;
+        MessageEvent message_event = 20;
     }
 }
 
-service Handler {
-    rpc Handle (stream Event) returns (stream Command);
+message SubscribeRequest {
+    string uuid = 1;
+}
+message CommandResponse {
+    string uuid = 1;
+    google.protobuf.Any payload = 2;
+}
+
+message MessageCmd {
+    string to = 1;
+    Message message = 2;
+}
+message AckCmd {
+    repeated string message_ids = 1;
+    google.protobuf.Timestamp timestamp = 2;
+    string chat_jid = 3; // must always be set to the chat ID (user ID in DMs and group ID in group chats)
+    string sender_jid = 4; // ust be set in group chats and must be the user ID who sent the message
+}
+
+message Command {
+    string uuid = 1;
+
+    oneof operation {
+        MessageCmd message_cmd = 20;
+        AckCmd ack_cmd = 21;
+    }
+}
+
+
+service ChatManager {
+    rpc Subscribe (SubscribeRequest) returns (stream Event);
+    rpc Execute (Command) returns (CommandResponse);
 }
