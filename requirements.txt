@@ -40,6 +40,7 @@ joblib==1.2.0
 kiwisolver==1.4.4
 langchain==0.0.152
 layoutparser==0.3.4
+loguru==0.7.0
 lxml==4.9.2
 Markdown==3.4.3
 MarkupSafe==2.1.2
@@ -69,6 +70,7 @@ pdfplumber==0.9.0
 Pillow==9.5.0
 playwright==1.32.1
 portalocker==2.7.0
+promptlayer==0.1.80
 protobuf==4.22.3
 pycocotools==2.0.6
 pycparser==2.21
