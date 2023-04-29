@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/timestamp.proto";
+
+message GroupInfo {
+    string jid = 1;
+    string owner_jid = 2;
+    GroupName group_name = 3;
+    GroupTopic group_topic = 4;
+    GroupLocked group_locked = 5;
+    GroupAnnounce group_announce = 6;
+    GroupEphemeral group_ephemeral = 7;
+    GroupParent group_parent = 8;
+    GroupLinkedParent group_linked_parent = 9;
+    GroupIsDefaultSub group_is_default_sub = 10;
+    google.protobuf.Timestamp group_created = 11;
+    string participant_version_id = 12;
+    repeated GroupParticipantEnriched participants = 13;
+    string member_add_mode = 14;
+}
+
+message GroupParent {
+    bool is_parent = 1;
+    string default_membership_approval_mode = 2; // request_required
+}
+
+message GroupLinkedParent {
+    string linked_parent_jid = 1;
+}
+
+message GroupIsDefaultSub {
+    bool is_default_sub_group = 1;
+}
+
+message GroupName {
+    string name = 1;
+    google.protobuf.Timestamp name_set_at = 2;
+    string name_set_by = 3;
+}
+
+message GroupTopic {
+    string topic = 1;
+    string topic_id = 2;
+    google.protobuf.Timestamp topic_set_at = 3;
+    string topic_set_by = 4;
+    bool topic_deleted = 5;
+}
+
+message GroupLocked {
+    bool is_locked = 1;
+}
+
+message GroupAnnounce {
+    bool is_announce = 1;
+    string announce_version_id = 2;
+}
+
+message GroupParticipantEnriched {
+    string jid = 1;
+    bool is_admin = 2;
+    bool is_super_admin = 3;
+}
+
+message GroupEphemeral {
+    bool is_ephemeral = 1;
+    uint32 disappearing_timer = 2;
+}
+
+message GroupDelete {
+    bool deleted = 1;
+    string delete_reason = 2;
+}
+
+enum GroupLinkChangeType {
+    PARENT_GROUP = 0;
+    SUB_GROUP = 1;
+    SIBLING_GROUP = 2;
+}
+
+enum GroupUnlinkReason {
+    UNLINK_GROUP = 0;
+    DELETE_PARENT = 1;
+}
+
+message GroupLinkTarget {
+    string jid = 1;
+    GroupName group_name = 2;
+    GroupIsDefaultSub group_is_default_sub = 3;
+}
+
+message GroupLinkChange {
+    GroupLinkChangeType type = 1;
+    GroupUnlinkReason unlink_reason = 2;
+    GroupLinkTarget group = 3;
+}

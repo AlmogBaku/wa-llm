@@ -1,15 +1,16 @@
-import logging
 import os
-import traceback
 from concurrent.futures import ThreadPoolExecutor
 from time import sleep
 
 import grpc
+import promptlayer
 from dotenv import load_dotenv
+from loguru import logger
 
 from src import start_bot
 
 load_dotenv()
+promptlayer.api_key = os.environ.get("PROMPTLAYER_API_KEY")
 
 
 def run():
@@ -25,13 +26,11 @@ def run():
                 future = executor.submit(start_bot, channel)
                 future.result()
         except Exception as e:
-            traceback.print_exception(e)
-            print()
-            logging.info("Retrying in 5 seconds...")
+            logger.exception(e)
+            logger.info(f"Retrying in 5 seconds... ({tries + 1}/5)")
             tries += 1
             sleep(5)
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
     run()

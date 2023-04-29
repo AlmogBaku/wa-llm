@@ -2,45 +2,10 @@ syntax = "proto3";
 
 package proto;
 
-import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
+import "proto/msg-event.proto";
 import "proto/wa-def.proto";
-
-message MessageSource {
-    string chat = 1; // jid
-    string sender = 2; // jid
-    bool is_from_me = 3;
-    bool is_group = 4;
-    string broadcast_list_owner = 5;
-}
-
-message DeviceSentMeta {
-    string destination_jid = 1;
-    string phash = 2;
-}
-
-message MessageInfo {
-    MessageSource message_source = 1;
-    string id = 2; // message id
-    string type = 3;
-    string push_name = 4;
-    google.protobuf.Timestamp timestamp = 5;
-    string category = 6;
-    bool multicast = 7;
-    string media_type = 8;
-    VerifiedNameCertificate verified_name = 9;
-    DeviceSentMeta device_sent_meta = 10;
-}
-
-message MessageEvent {
-    MessageInfo info = 2;
-    Message message = 3;
-    bool is_ephemeral = 4;
-    bool is_view_once = 5;
-    bool is_view_once_v2 = 6;
-    bool is_document_with_caption = 7;
-    bool is_edit = 8;
-}
+import "proto/wa-group.proto";
 
 
 message AccountContext {
@@ -51,6 +16,9 @@ message AccountContext {
     string push_name = 5;
 }
 
+message SubscribeRequest {
+    string uuid = 1;
+}
 message Event {
     string subscription_id = 1;
     string uuid = 2;
@@ -59,14 +27,6 @@ message Event {
     oneof event {
         MessageEvent message_event = 20;
     }
-}
-
-message SubscribeRequest {
-    string uuid = 1;
-}
-message CommandResponse {
-    string uuid = 1;
-    google.protobuf.Any payload = 2;
 }
 
 message MessageCmd {
@@ -80,12 +40,23 @@ message AckCmd {
     string sender_jid = 4; // ust be set in group chats and must be the user ID who sent the message
 }
 
+message GroupInfoCmd {
+    string jid = 1;
+}
+
 message Command {
     string uuid = 1;
 
     oneof operation {
         MessageCmd message_cmd = 20;
         AckCmd ack_cmd = 21;
+        GroupInfoCmd group_info_cmd = 22;
+    }
+}
+message CommandResponse {
+    string uuid = 1;
+    oneof response {
+        GroupInfo group_info = 20;
     }
 }
 

@@ -1,9 +1,11 @@
 from typing import Callable, List
-from warnings import warn
+
+from loguru import logger
 
 from ..handler.cmds import CommandResult, ack_cmd
 from ..jid import parse_jid, JID
-from ..proto.wa_handler_pb2 import Event, AccountContext, MessageEvent
+from ..proto.msg_event_pb2 import MessageEvent
+from ..proto.wa_handler_pb2 import Event, AccountContext
 
 
 class Message:
@@ -20,7 +22,7 @@ class Message:
 
         self.my_jid, err = parse_jid(event.account_context.id)
         if err is not None:
-            warn(f"Failed to parse my JID: {err}")
+            logger.warning(f"Failed to parse my JID: {err}")
 
         msg = event.message_event
         if msg.message.extendedTextMessage is not None:

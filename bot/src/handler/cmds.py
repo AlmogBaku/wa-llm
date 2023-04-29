@@ -1,11 +1,11 @@
 import uuid
 from datetime import datetime
 from typing import Generator, Union
-from warnings import warn
 
-from ..jid import JID, parse_jid
+from ..jid import JID
+from ..proto.msg_event_pb2 import MessageEvent
 from ..proto.wa_def_pb2 import Message
-from ..proto.wa_handler_pb2 import MessageCmd, Command, MessageEvent, AckCmd
+from ..proto.wa_handler_pb2 import MessageCmd, Command, AckCmd
 
 CommandResult = Generator[Command, None, None]
 

@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/timestamp.proto";
+import "proto/wa-def.proto";
+
+message MessageSource {
+    string chat = 1; // jid
+    string sender = 2; // jid
+    bool is_from_me = 3;
+    bool is_group = 4;
+    string broadcast_list_owner = 5;
+}
+
+message DeviceSentMeta {
+    string destination_jid = 1;
+    string phash = 2;
+}
+
+message MessageInfo {
+    MessageSource message_source = 1;
+    string id = 2; // message id
+    string type = 3;
+    string push_name = 4;
+    google.protobuf.Timestamp timestamp = 5;
+    string category = 6;
+    bool multicast = 7;
+    string media_type = 8;
+    VerifiedNameCertificate verified_name = 9;
+    DeviceSentMeta device_sent_meta = 10;
+}
+
+message MessageEvent {
+    MessageInfo info = 2;
+    Message message = 3;
+    bool is_ephemeral = 4;
+    bool is_view_once = 5;
+    bool is_view_once_v2 = 6;
+    bool is_document_with_caption = 7;
+    bool is_edit = 8;
+};

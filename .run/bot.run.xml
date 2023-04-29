@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="runtime" type="PythonConfigurationType" factoryName="Python">
+  <configuration default="false" name="bot" type="PythonConfigurationType" factoryName="Python">
     <module name="wa-group-admin" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
@@ -8,7 +8,7 @@
     </envs>
     <option name="SDK_HOME" value="$PROJECT_DIR$/.venv/bin/python" />
     <option name="SDK_NAME" value="Python 3.11 (wa-group-admin)" />
-    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/python" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/bot" />
     <option name="IS_MODULE_SDK" value="true" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
