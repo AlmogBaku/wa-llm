@@ -17,6 +17,8 @@ class Message:
     raw_account_context: AccountContext
 
     def __init__(self, event: Event):
+        self.raw_message_event = event.message_event
+        self.raw_account_context = event.account_context
         self._text = event.message_event.message.conversation
         self.chat = event.message_event.info.message_source.chat
 
