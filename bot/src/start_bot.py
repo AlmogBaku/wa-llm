@@ -3,7 +3,7 @@ from uuid import uuid4
 
 import grpc
 
-from .handler.handler import Instance as HandlerInstance
+from .handlers.handler import Instance as HandlerInstance
 from .proto.wa_handler_pb2 import SubscribeRequest
 from .proto.wa_handler_pb2_grpc import ChatManagerStub
 

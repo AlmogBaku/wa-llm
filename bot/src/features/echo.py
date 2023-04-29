@@ -1,5 +1,5 @@
-from ..handler.cmds import CommandResult, msg_cmd
-from ..handler.handler import Instance, Message
+from ..handlers.cmds import CommandResult, msg_cmd
+from ..handlers.handler import Instance, Message
 
 
 @Instance.message_handler

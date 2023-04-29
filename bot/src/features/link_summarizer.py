@@ -7,8 +7,8 @@ from langchain.document_loaders import PlaywrightURLLoader
 from langchain.schema import Document
 from langchain.text_splitter import CharacterTextSplitter
 
-from ..handler.cmds import CommandResult, msg_cmd
-from ..handler.handler import Message, Instance
+from ..handlers.cmds import CommandResult, msg_cmd
+from ..handlers.handler import Message, Instance
 
 
 def find_links(msg: str) -> list[str]:
