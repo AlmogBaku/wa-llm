@@ -1,6 +1,7 @@
 .venv
 .idea
 *.db
+.env
 chat-manager/proto/*.pb.go
 bot/src/proto/*_pb2.py
 bot/src/proto/*_pb2.pyi
