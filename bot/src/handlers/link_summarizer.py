@@ -63,7 +63,7 @@ def handle_message(ctx: Context, msg: Message) -> CommandResult:
         store: ChatStore = ctx.store
         group = store.get_group(chat_jid)
         if group is None:
-            logger.warning(f"Failed to get group {chat_jid}")
+            logger.warning(f"Failed to get group {chat_jid}: {err}")
             return
 
         if not group.managed:

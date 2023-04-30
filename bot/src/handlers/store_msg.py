@@ -5,7 +5,6 @@ from loguru import logger
 
 from ..events import Context, CommandResult, Message, message_handler, group_info_cmd
 from ..jid import parse_jid, JID
-from ..proto.wa_group_pb2 import GroupInfo
 from ..proto.wa_handler_pb2 import CommandResponse
 from ..proto.wa_handler_pb2_grpc import ChatManagerStub
 from ..store import ChatStore
@@ -64,9 +63,6 @@ def run_async_tasks(*coroutines):
 def handle_message(ctx: Context, msg: Message) -> CommandResult:
     store: ChatStore = ctx.store
     stub: ChatManagerStub = ctx.stub
-    if store is None:
-        logger.warning("Store not found in context")
-        return
 
     coroutines = [save_message(store, msg)]
 
