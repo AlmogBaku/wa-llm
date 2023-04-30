@@ -6,9 +6,11 @@ from langchain.chains.summarize import load_summarize_chain
 from langchain.document_loaders import PlaywrightURLLoader
 from langchain.schema import Document
 from langchain.text_splitter import CharacterTextSplitter
+from loguru import logger
 
-from ..events.cmds import CommandResult, msg_cmd
-from ..events.handler import Message, Instance
+from ..events import Context, CommandResult, msg_cmd, Message, message_handler
+from ..jid import parse_jid
+from ..store import ChatStore
 
 
 def find_links(msg: str) -> list[str]:
@@ -35,7 +37,7 @@ def link_summarizer(links: List[str]) -> Generator[LinkSummary, None, None]:
     links = [l if l.startswith("http") else f"http://{l}" for l in links]
 
     llm = OpenAI(temperature=0)
-    text_splitter = CharacterTextSplitter()
+    text_splitter = CharacterTextSplitter.from_tiktoken_encoder()
 
     loader = PlaywrightURLLoader(urls=links, remove_selectors=["header", "footer", "script", "style", "iframe", "nav"])
     pages = loader.load()
@@ -50,10 +52,26 @@ def link_summarizer(links: List[str]) -> Generator[LinkSummary, None, None]:
         yield LinkSummary(url=page.metadata['source'], summary=summary)
 
 
-@Instance.message_handler
-def handle_message(msg: Message) -> CommandResult:
+@message_handler
+def handle_message(ctx: Context, msg: Message) -> CommandResult:
+    chat_jid, err = parse_jid(msg.chat)
+    if err is not None:
+        logger.warning(f"Failed to parse chat JID: {err}")
+        return
+
+    if chat_jid.is_group():
+        store: ChatStore = ctx.store
+        group = store.get_group(chat_jid)
+        if group is None:
+            logger.warning(f"Failed to get group {chat_jid}")
+            return
+
+        if not group.managed:
+            logger.debug(f"Group {chat_jid} is not managed, but found a link. Ignoring.")
+            return
+
     links = find_links(msg.text)
     if len(links) > 0:
-        print(f"Found {len(links)} links")
+        logger.debug(f"Found {len(links)} links")
         for summary in link_summarizer(links):
             yield msg_cmd(msg.chat, f"Yo, a quick summary for {summary.url}:\n{summary.summary}")

@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Tuple, Union
 
+from loguru import logger
+
 
 @dataclass
 class JID:
@@ -22,6 +24,9 @@ class JID:
     def is_broadcast_list(self) -> bool:
         return self.server == BroadcastServer and self.user != StatusBroadcastJID.user
 
+    def is_group(self) -> bool:
+        return self.server == GroupServer
+
     def __str__(self) -> str:
         if self.ad:
             return f"{self.user}.{self.agent}:{self.device}@{self.server}"
@@ -32,6 +37,9 @@ class JID:
 
     def is_empty(self) -> bool:
         return len(self.server) == 0
+
+    def normalize_str(self):
+        return normalize_jid(self)
 
 
 def new_ad_jid(user: str, agent: int, device: int) -> JID:
@@ -74,6 +82,17 @@ def parse_jid(jid: str) -> Tuple[JID, Union[None, str]]:
 
 def new_jid(user: str, server: str) -> JID:
     return JID(user=user, server=server)
+
+
+def normalize_jid(jid: Union[JID, str]) -> str:
+    if isinstance(jid, str):
+        pjid, err = parse_jid(jid)
+        if err is not None:
+            logger.error(err)
+            return jid
+        jid = pjid
+
+    return str(jid.to_non_ad())
 
 
 # Known JID servers on WhatsApp

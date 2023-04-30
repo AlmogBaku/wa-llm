@@ -1,9 +1,8 @@
-from ..events.cmds import CommandResult, msg_cmd
-from ..events.handler import Instance, Message
+from ..events import Context, CommandResult, msg_cmd, Message, message_handler
 
 
-@Instance.message_handler
-def handle_message(msg: Message) -> CommandResult:
+@message_handler
+def handle_message(ctx: Context, msg: Message) -> CommandResult:
     if not msg.mentioned_me:
         return
 

@@ -7,6 +7,7 @@ import promptlayer
 from dotenv import load_dotenv
 from loguru import logger
 
+from src.store import ChatStore
 from src import start_bot
 
 load_dotenv()
@@ -16,14 +17,17 @@ promptlayer.api_key = os.environ.get("PROMPTLAYER_API_KEY")
 def run():
     executor = ThreadPoolExecutor()
 
-    chat_mgr_grpc_url = 'unix:///tmp/chat-mgr.sock' if os.environ.get('CHAT_MGR_GRPC_URL') is None else os.environ.get(
-        'CHAT_MGR_GRPC_URL')
+    db = os.environ.get('DB_URL', 'sqlite:///./bot.db')
+    store = ChatStore(db)
+    store.create_tables()
+
+    chat_mgr_grpc_url = os.environ.get('CHAT_MGR_GRPC_URL', 'unix:///tmp/chat-mgr.sock')
 
     tries = 0
     while tries < 5:
         try:
             with grpc.insecure_channel(chat_mgr_grpc_url) as channel:
-                future = executor.submit(start_bot, channel)
+                future = executor.submit(start_bot, channel, store)
                 future.result()
         except Exception as e:
             logger.exception(e)

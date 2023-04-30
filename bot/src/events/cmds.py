@@ -1,13 +1,13 @@
 import uuid
 from datetime import datetime
-from typing import Generator, Union
+from typing import Generator, Union, Optional
 
 from ..jid import JID
 from ..proto.msg_event_pb2 import MessageEvent
 from ..proto.wa_def_pb2 import Message
-from ..proto.wa_handler_pb2 import MessageCmd, Command, AckCmd
+from ..proto.wa_handler_pb2 import MessageCmd, Command, AckCmd, GroupInfoCmd
 
-CommandResult = Generator[Command, None, None]
+CommandResult = Optional[Generator[Command, None, None]]
 
 
 def msg_cmd(to: Union[JID, str], msg) -> Command:
@@ -30,4 +30,12 @@ def ack_cmd(message_event: MessageEvent) -> Command:
     return Command(
         uuid=uuid.uuid4().hex,
         ack_cmd=ack,
+    )
+
+def group_info_cmd(jid: Union[JID, str]) -> Command:
+    return Command(
+        uuid=uuid.uuid4().hex,
+        group_info_cmd=GroupInfoCmd(
+            jid=str(jid),
+        ),
     )
