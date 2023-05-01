@@ -67,6 +67,7 @@ class Message:
     _text: str = ""
     chat: str = None
     my_jid: JID = None
+    sender_jid: JID = None
     mentioned_me: bool = False
     raw_message_event: MessageEvent
     raw_account_context: AccountContext
@@ -77,6 +78,10 @@ class Message:
         self.raw_account_context = event.account_context
         self._text = event.message_event.message.conversation
         self.chat = event.message_event.info.message_source.chat
+
+        self.sender_jid, err = parse_jid(event.message_event.info.message_source.sender)
+        if err is not None:
+            logger.warning(f"Failed to parse sender JID: {err}")
 
         self.my_jid, err = parse_jid(event.account_context.id)
         if err is not None:
@@ -96,7 +101,7 @@ class Message:
                     if self.my_jid.normalize_str() in msg.message.extendedTextMessage.contextInfo.mentionedJid:
                         self.mentioned_me = True
 
-        if self._text == "" and msg.message.reactionMessage is not None:
+        if self._text == "" and msg.message.reactionMessage is not None and msg.message.reactionMessage.text != '':
             if msg.message.reactionMessage.key.remoteJid != str(
                     self.my_jid.to_non_ad()):  # don't handle reactions to my own messages
                 self._text = msg.message.reactionMessage.text

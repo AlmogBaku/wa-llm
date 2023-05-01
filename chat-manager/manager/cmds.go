@@ -4,8 +4,12 @@ import (
 	"chat-manager/proto"
 	"context"
 	"fmt"
+	"go.mau.fi/whatsmeow"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types"
+	"net/url"
+	"os"
+	"path"
 	"unsafe"
 )
 
@@ -17,7 +21,10 @@ func (m *mgr) Execute(ctx context.Context, cmd *proto.Command) (*proto.CommandRe
 		return m.ackMessageCmd(ctx, cmd)
 	case *proto.Command_GroupInfoCmd:
 		return m.groupInfoCmd(ctx, cmd)
+	case *proto.Command_DownloadCmd:
+		return m.downloadMedia(ctx, cmd)
 	default:
+		m.logger.Warnf("Unknown action: %v", cmd.Operation)
 		return nil, fmt.Errorf("unknown action: %v", cmd.Operation)
 	}
 }
@@ -66,4 +73,71 @@ func (m *mgr) ackMessageCmd(ctx context.Context, cmd *proto.Command) (*proto.Com
 		return nil, fmt.Errorf("failed to send ack: %v", err)
 	}
 	return &proto.CommandResponse{Uuid: cmd.Uuid}, nil
+}
+
+func (m *mgr) downloadMedia(ctx context.Context, cmd *proto.Command) (*proto.CommandResponse, error) {
+	var downloadableMessage whatsmeow.DownloadableMessage
+	switch v := cmd.GetDownloadCmd().DownloadableMessage.(type) {
+	case *proto.DownloadCmd_AudioMessage:
+		downloadableMessage = v.AudioMessage
+	case *proto.DownloadCmd_DocumentMessage:
+		downloadableMessage = v.DocumentMessage
+	case *proto.DownloadCmd_ExternalBlobReference:
+		downloadableMessage = v.ExternalBlobReference
+	case *proto.DownloadCmd_HistorySyncNotification:
+		downloadableMessage = v.HistorySyncNotification
+	case *proto.DownloadCmd_ImageMessage:
+		downloadableMessage = v.ImageMessage
+	case *proto.DownloadCmd_PaymentBackgroundMediaData:
+		downloadableMessage = v.PaymentBackgroundMediaData
+	case *proto.DownloadCmd_StickerMessage:
+		downloadableMessage = v.StickerMessage
+	case *proto.DownloadCmd_StickerMetadata:
+		downloadableMessage = v.StickerMetadata
+	case *proto.DownloadCmd_VideoMessage:
+		downloadableMessage = v.VideoMessage
+	default:
+		return nil, fmt.Errorf("unknown downloadable message: %v", v)
+	}
+
+	b, err := m.client.Download(downloadableMessage)
+	if err != nil {
+		m.logger.Warnf("Failed to download media: %v", err)
+		return nil, fmt.Errorf("failed to download media: %v", err)
+	}
+	//save to file
+	u, err := url.Parse(downloadableMessage.GetDirectPath())
+	if err != nil {
+		m.logger.Warnf("Failed to parse url: %v", err)
+		return nil, fmt.Errorf("failed to parse url: %v", err)
+	}
+
+	dname, err := os.MkdirTemp("", "chat-manager")
+	if err != nil {
+		m.logger.Warnf("Failed to create temporary directory: %v", err)
+		return nil, fmt.Errorf("failed to create temporary directory: %v", err)
+	}
+
+	fname := fmt.Sprintf("%s/%s-%s", dname, cmd.GetDownloadCmd().GetChatJid(), path.Base(u.Path))
+	file, err := os.Create(fname)
+	if err != nil {
+		m.logger.Warnf("Failed to create file: %v", err)
+		return nil, fmt.Errorf("failed to create file: %v", err)
+	}
+
+	defer file.Close()
+	_, err = file.Write(b)
+	if err != nil {
+		m.logger.Warnf("Failed to write file: %v", err)
+		return nil, fmt.Errorf("failed to write file: %v", err)
+	}
+	return &proto.CommandResponse{
+		Uuid: cmd.Uuid,
+		Response: &proto.CommandResponse_DownloadResponse{
+			DownloadResponse: &proto.DownloadResponse{
+				MessageId: cmd.GetDownloadCmd().MessageId,
+				FileUri:   fmt.Sprintf("file://%s", file.Name()),
+			},
+		},
+	}, nil
 }

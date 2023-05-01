@@ -74,4 +74,4 @@ def handle_message(ctx: Context, msg: Message) -> CommandResult:
     if len(links) > 0:
         logger.debug(f"Found {len(links)} links")
         for summary in link_summarizer(links):
-            yield msg_cmd(msg.chat, f"Yo, a quick summary for {summary.url}:\n{summary.summary}")
+            yield msg_cmd(msg.chat, f"Yo, a quick summary for {summary.url}:\n{summary.summary}", reply_to=msg.raw_message_event)

@@ -39,6 +39,25 @@ message AckCmd {
     string chat_jid = 3; // must always be set to the chat ID (user ID in DMs and group ID in group chats)
     string sender_jid = 4; // ust be set in group chats and must be the user ID who sent the message
 }
+message DownloadCmd {
+    string message_id = 1;
+    string chat_jid = 2;
+    oneof downloadable_message {
+        AudioMessage audio_message = 20;
+        DocumentMessage document_message = 21;
+        ExternalBlobReference external_blob_reference = 22;
+        HistorySyncNotification history_sync_notification = 23;
+        ImageMessage image_message = 24;
+        PaymentBackground.MediaData payment_background_media_data = 25;
+        StickerMessage sticker_message = 26;
+        StickerMetadata sticker_metadata = 27;
+        VideoMessage video_message = 28;
+    }
+}
+message DownloadResponse {
+    string message_id = 1;
+    string file_uri = 3;
+}
 
 message GroupInfoCmd {
     string jid = 1;
@@ -51,12 +70,14 @@ message Command {
         MessageCmd message_cmd = 20;
         AckCmd ack_cmd = 21;
         GroupInfoCmd group_info_cmd = 22;
+        DownloadCmd download_cmd = 23;
     }
 }
 message CommandResponse {
     string uuid = 1;
     oneof response {
         GroupInfo group_info = 20;
+        DownloadResponse download_response = 21;
     }
 }
 

@@ -22,6 +22,8 @@ def handle_message(ctx: Context, msg: Message) -> CommandResult:
         return
 
     txt = txt[len(cmd):].strip()
+    if txt == "":
+        return
 
     llm = OpenAI(temperature=0)
 
