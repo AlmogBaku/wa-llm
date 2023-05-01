@@ -102,8 +102,8 @@ class Message:
                         self.mentioned_me = True
 
         if self._text == "" and msg.message.reactionMessage is not None and msg.message.reactionMessage.text != '':
-            if msg.message.reactionMessage.key.remoteJid != str(
-                    self.my_jid.to_non_ad()):  # don't handle reactions to my own messages
+            me = str( self.my_jid.to_non_ad())
+            if msg.message.reactionMessage.key.remoteJid !=  me and msg.message.reactionMessage.key.participant != me:  # don't handle reactions to my own messages
                 self._text = msg.message.reactionMessage.text
                 self.reply_to = msg.message.reactionMessage.key.id
 

@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, List, Type, Union
 
 from loguru import logger
-from sqlalchemy import create_engine, Column, String, DateTime, ForeignKey, Boolean
+from sqlalchemy import create_engine, Column, String, DateTime, ForeignKey, Boolean, Text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -36,7 +36,7 @@ class Message(Base):
     _chat_jid = Column('chat_jid', String(255))
     _sender_jid = Column('sender_jid', String(255), ForeignKey('senders.jid'))
     group_jid = Column('group_jid', String(255), ForeignKey('groups.group_jid'), nullable=True)
-    text = Column(String(255))
+    text = Column(Text())
 
     sender = relationship('Sender', back_populates='messages')
     # group = relationship('Group', back_populates='messages')
@@ -120,6 +120,7 @@ class ChatStore:
             sender = Sender(jid=sender_jid, push_name=sender_push_name)
             self.upsert(session, sender)
 
+        reply_to = None # TODO: fix this
         if reply_to == '':
             reply_to = None
         chat_message = Message(message_id=message_id, timestamp=timestamp.astimezone(timezone.utc),

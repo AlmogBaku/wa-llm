@@ -31,6 +31,7 @@ def handle_message(ctx: Context, msg: Message) -> CommandResult:
     tools += [
         ChatHistoryTool(store=ctx.store, chat_jid=msg.chat, my_jid=msg.my_jid),
         say,
+        today,
     ]
     agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True)
 
@@ -40,9 +41,16 @@ def handle_message(ctx: Context, msg: Message) -> CommandResult:
 
 @tool
 def say(text: str) -> str:
-    """Say what you want to say. This is a tool that can be used by the agent when it want to say, write or speak
+    """Say what you want to say. This is a tool that can be used by the agent when it wants to say, write or speak
     something."""
     return text
+
+@tool
+def today() -> str:
+    """Get today's date and time information.
+    You MUST use this tool every time you want to get today's date or time information."""
+    return (f"Today is {datetime.now().strftime('%A %d %B %Y')} and the time is {datetime.now().strftime('%H:%M')}\n"
+            f"In ISO format this is {datetime.now().isoformat()}")
 
 
 class ChatHistoryTool(BaseTool):
@@ -55,7 +63,6 @@ class ChatHistoryTool(BaseTool):
         "The input to this tool is a comma separated start and end time in ISO format. If you don't know the time use "
         "None. For example: `2021-01-01T00:00:00,2021-01-01T23:59:59` would mean you want to see the chat history "
         "from the 1-1-2021 00:00 to 1-1-2021 23:59."
-        f"today is the `{datetime.now().isoformat()}`"
     )
     store: ChatStore
     chat_jid: str

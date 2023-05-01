@@ -15,11 +15,10 @@ from ..store import ChatStore
 
 _model: Whisper | None = None
 
-_MODEL_NAME = os.environ.get("GGML_MODEL", "tiny")
-
-
 @lru_cache(maxsize=1)
 def get_model() -> Whisper:
+    _MODEL_NAME = os.environ.get("GGML_MODEL", "tiny")
+
     global _model
     if _model is None:
         _model = Whisper.from_pretrained(_MODEL_NAME)
@@ -79,5 +78,7 @@ def handle_message(ctx: Context, msg: Message) -> CommandResult:
 
     arr = np.frombuffer(y, np.int16).flatten().astype(np.float32) / 32768.0
 
-    ret = get_model().transcribe(arr)
+    w = get_model()
+    w.params = w.params.with_language("auto")
+    ret = w.transcribe(arr)
     yield msg_cmd(msg.chat, f"@{msg.sender_jid.user} said:\n{ret}", reply_to=msg.raw_message_event)
