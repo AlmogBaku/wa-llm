@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 
 from langchain import OpenAI
-from langchain.agents import initialize_agent, AgentType
+from langchain.agents import initialize_agent, AgentType, tool, load_tools
 from langchain.tools import BaseTool
 
 from ..events import Context, CommandResult, msg_cmd, Message, message_handler
@@ -17,19 +17,30 @@ def handle_message(ctx: Context, msg: Message) -> CommandResult:
 
     txt = msg.text_replace_my_mentions("")
 
-    if not txt.startswith("/ask "):
+    cmd = '!'
+    if not txt.startswith(cmd):
         return
 
-    txt = txt[len("/ask "):]
+    txt = txt[len(cmd):].strip()
 
     llm = OpenAI(temperature=0)
-    agent = initialize_agent([
+
+    tools = load_tools(["requests_all", "llm-math", "open-meteo-api", "wikipedia"], llm=llm)
+    tools += [
         ChatHistoryTool(store=ctx.store, chat_jid=msg.chat, my_jid=msg.my_jid),
-    ], llm,
-        agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True)
+        say,
+    ]
+    agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True)
 
     response = agent.run(txt)
     yield msg_cmd(msg.chat, response)
+
+
+@tool
+def say(text: str) -> str:
+    """Say what you want to say. This is a tool that can be used by the agent when it want to say, write or speak
+    something."""
+    return text
 
 
 class ChatHistoryTool(BaseTool):

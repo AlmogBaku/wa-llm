@@ -38,7 +38,7 @@ iopath==0.1.10
 Jinja2==3.1.2
 joblib==1.2.0
 kiwisolver==1.4.4
-langchain==0.0.152
+langchain==0.0.147
 layoutparser==0.3.4
 loguru==0.7.0
 lxml==4.9.2
@@ -55,7 +55,7 @@ mypy-extensions==1.0.0
 networkx==3.1
 nltk==3.8.1
 numexpr==2.8.4
-numpy==1.23.5
+numpy==1.24.3
 olefile==0.46
 omegaconf==2.3.0
 openai==0.27.5
@@ -93,14 +93,16 @@ regex==2023.3.23
 requests==2.29.0
 rfc3986==1.5.0
 rich==13.0.1
+scikit-learn==1.2.2
 scipy==1.10.1
 six==1.16.0
 sniffio==1.3.0
 soupsieve==2.4.1
-SQLAlchemy==2.0.11
+SQLAlchemy==1.4.47
 starlette==0.26.1
 sympy==1.11.1
 tenacity==8.2.2
+threadpoolctl==3.1.0
 tiktoken==0.3.3
 timm==0.6.13
 torch==2.0.0
@@ -113,6 +115,7 @@ unstructured-inference==0.2.4
 urllib3==1.26.15
 uvicorn==0.22.0
 Wand==0.6.11
+wikipedia==1.4.0
 wrapt==1.14.1
 XlsxWriter==3.1.0
 yarl==1.9.2
