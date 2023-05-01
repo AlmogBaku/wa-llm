@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="llm-wa-bot" type="CompoundRunConfigurationType">
-    <toRun name="wa-wrapper" type="GoApplicationRunConfiguration" />
-    <toRun name="runtime" type="PythonConfigurationType" />
+    <toRun name="chat-manager" type="GoApplicationRunConfiguration" />
+    <toRun name="bot" type="PythonConfigurationType" />
     <method v="2" />
   </configuration>
 </component>

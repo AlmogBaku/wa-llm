@@ -5,7 +5,8 @@ import (
 	"chat-manager/proto"
 	"context"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"github.com/mdp/qrterminal/v3"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store/sqlstore"
@@ -19,9 +20,19 @@ import (
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		panic("Error loading .env file")
+	}
+
+	dbUri := "postgresql://postgres:almog1is2the3best4@localhost:5432/bot"
+	if os.Getenv("DB_URL") != "" {
+		dbUri = os.Getenv("DB_URL")
+	}
+
 	dbLog := waLog.Stdout("Database", "DEBUG", true)
 	// Make sure you add appropriate DB connector imports, e.g. github.com/mattn/go-sqlite3 for SQLite
-	store, err := sqlstore.New("sqlite3", "file:wa-store.db?_foreign_keys=on", dbLog)
+	store, err := sqlstore.New("postgres", dbUri, dbLog)
 	if err != nil {
 		panic(err)
 	}

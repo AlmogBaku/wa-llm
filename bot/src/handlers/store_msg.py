@@ -61,6 +61,9 @@ def run_async_tasks(*coroutines):
 
 @message_handler
 def handle_message(ctx: Context, msg: Message) -> CommandResult:
+    if msg.text is None or msg.text == "":
+        return
+
     store: ChatStore = ctx.store
     stub: ChatManagerStub = ctx.stub
 
