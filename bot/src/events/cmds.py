@@ -15,6 +15,7 @@ def msg_cmd(to: Union[JID, str], msg, reply_to: Optional[MessageEvent] = None) -
     mentions = re.findall(r"@(\d{7,15})", msg, re.MULTILINE)
     mentions = [str(JID(user_id, server=DefaultUserServer)) for user_id in mentions]
 
+    reply_to = None  # todo: fix this
     if reply_to is not None:
         return Command(
             uuid=uuid.uuid4().hex,
