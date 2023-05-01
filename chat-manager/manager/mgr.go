@@ -38,7 +38,7 @@ func (m *mgr) Subscribe(sr *proto.SubscribeRequest, stream proto.ChatManager_Sub
 			e.SubscriptionId = sr.Uuid
 			err := stream.Send(e)
 			if err != nil {
-				m.logger.Errorf("failed to send event: %v", err)
+				m.logger.Errorf("failed to send event: %w", err)
 			}
 		case <-stream.Context().Done():
 			return nil

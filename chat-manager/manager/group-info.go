@@ -14,19 +14,19 @@ import (
 func (m *mgr) groupInfoCmd(ctx context.Context, cmd *proto.Command) (*proto.CommandResponse, error) {
 	jid, err := types.ParseJID(cmd.GetGroupInfoCmd().GetJid())
 	if err != nil {
-		m.logger.Warnf("Failed to parse jid: %v", err)
+		m.logger.Warnf("Failed to parse jid: %w", err)
 		return nil, fmt.Errorf("failed to parse jid: %w", err)
 	}
 
 	info, err := m.client.GetGroupInfo(jid)
 	if err != nil {
-		m.logger.Warnf("Failed to get group info: %v", err)
+		m.logger.Warnf("Failed to get group info: %w", err)
 		return nil, fmt.Errorf("failed to get group info: %w", err)
 	}
 
 	protoInfo, err := groupInfoToProto(info)
 	if err != nil {
-		m.logger.Warnf("Failed to convert group info: %v", err)
+		m.logger.Warnf("Failed to convert group info: %w", err)
 		return nil, fmt.Errorf("failed to convert group info: %w", err)
 	}
 

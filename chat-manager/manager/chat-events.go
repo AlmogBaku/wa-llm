@@ -13,7 +13,7 @@ func (m *mgr) EventHandler(e any) {
 		if len(m.client.Store.PushName) > 0 && evnt.Name == appstate.WAPatchCriticalBlock {
 			err := m.client.SendPresence(types.PresenceAvailable)
 			if err != nil {
-				m.logger.Warnf("Failed to send available presence: %v", err)
+				m.logger.Warnf("Failed to send available presence: %w", err)
 			} else {
 				m.logger.Infof("Marked self as available")
 			}
@@ -26,7 +26,7 @@ func (m *mgr) EventHandler(e any) {
 		// This makes sure that outgoing messages always have the right pushname.
 		err := m.client.SendPresence(types.PresenceAvailable)
 		if err != nil {
-			m.logger.Warnf("Failed to send available presence: %v", err)
+			m.logger.Warnf("Failed to send available presence: %w", err)
 		} else {
 			m.logger.Infof("Marked self as available")
 		}
@@ -40,7 +40,7 @@ func (m *mgr) EventHandler(e any) {
 				m.client.Disconnect()
 				err := m.client.Connect()
 				if err != nil {
-					m.logger.Errorf("Error force-reconnecting after keepalive timeouts: %v", err)
+					m.logger.Errorf("Error force-reconnecting after keepalive timeouts: %w", err)
 				}
 			}()
 		}

@@ -102,33 +102,33 @@ func (m *mgr) downloadMedia(ctx context.Context, cmd *proto.Command) (*proto.Com
 
 	b, err := m.client.Download(downloadableMessage)
 	if err != nil {
-		m.logger.Warnf("Failed to download media: %v", err)
+		m.logger.Errorf("Failed to download media: %w", err)
 		return nil, fmt.Errorf("failed to download media: %v", err)
 	}
 	//save to file
 	u, err := url.Parse(downloadableMessage.GetDirectPath())
 	if err != nil {
-		m.logger.Warnf("Failed to parse url: %v", err)
+		m.logger.Errorf("Failed to parse url: %w", err)
 		return nil, fmt.Errorf("failed to parse url: %v", err)
 	}
 
 	dname, err := os.MkdirTemp("", "chat-manager")
 	if err != nil {
-		m.logger.Warnf("Failed to create temporary directory: %v", err)
+		m.logger.Errorf("Failed to create temporary directory: %w", err)
 		return nil, fmt.Errorf("failed to create temporary directory: %v", err)
 	}
 
 	fname := fmt.Sprintf("%s/%s-%s", dname, cmd.GetDownloadCmd().GetChatJid(), path.Base(u.Path))
 	file, err := os.Create(fname)
 	if err != nil {
-		m.logger.Warnf("Failed to create file: %v", err)
+		m.logger.Errorf("Failed to create file: %w", err)
 		return nil, fmt.Errorf("failed to create file: %v", err)
 	}
 
 	defer file.Close()
 	_, err = file.Write(b)
 	if err != nil {
-		m.logger.Warnf("Failed to write file: %v", err)
+		m.logger.Errorf("Failed to write file: %w", err)
 		return nil, fmt.Errorf("failed to write file: %v", err)
 	}
 	return &proto.CommandResponse{
