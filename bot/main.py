@@ -17,9 +17,7 @@ promptlayer.api_key = os.environ.get("PROMPTLAYER_API_KEY")
 def run():
     executor = ThreadPoolExecutor()
 
-    db = os.environ.get('DB_URL', 'sqlite:///./bot.db')
-    store = ChatStore(db)
-    store.create_tables()
+    db_uri = os.environ.get('DB_URL', 'sqlite:///./bot.db')
 
     chat_mgr_grpc_url = os.environ.get('CHAT_MGR_GRPC_URL', 'unix:///tmp/chat-mgr.sock')
 
@@ -27,7 +25,7 @@ def run():
     while tries < 5:
         try:
             with grpc.insecure_channel(chat_mgr_grpc_url) as channel:
-                future = executor.submit(start_bot, channel, store)
+                future = executor.submit(start_bot, channel, db_uri)
                 future.result()
         except Exception as e:
             logger.exception(e)

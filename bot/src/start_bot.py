@@ -9,7 +9,10 @@ from .proto.wa_handler_pb2_grpc import ChatManagerStub
 from .store.store import ChatStore
 
 
-def start_bot(channel: grpc.Channel, store: ChatStore) -> None:
+def start_bot(channel: grpc.Channel, db_uri: str) -> None:
+    store = ChatStore(db_uri)
+    store.create_tables()
+
     stub = ChatManagerStub(channel)
     handler = EventsManager(store, stub)
 

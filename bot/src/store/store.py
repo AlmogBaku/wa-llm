@@ -1,10 +1,12 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, List, Type, Union
 
 from sqlalchemy import create_engine, Column, String, DateTime, ForeignKey, Boolean
+from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import sessionmaker, relationship, backref
+from sqlalchemy.orm import sessionmaker, relationship, backref, scoped_session
+from sqlalchemy.pool import SingletonThreadPool
 
 from ..jid import normalize_jid, JID
 
@@ -69,53 +71,71 @@ class Group(Base):
 
 class ChatStore:
     def __init__(self, db_url):
-        self.engine = create_engine(db_url)
-        self.session = sessionmaker(bind=self.engine)()
+        self.engine = create_engine(db_url, poolclass=SingletonThreadPool, connect_args={"check_same_thread": False})
+        self.session_maker = sessionmaker(bind=self.engine, autoflush=False)
 
     def create_tables(self):
         Base.metadata.create_all(self.engine)
 
     def delete_old_messages(self):
+        session = scoped_session(self.session_maker)
+
         one_month_ago = datetime.utcnow() - timedelta(days=30)
-        self.session.query(Message).filter(Message.timestamp < one_month_ago).delete()
-        self.session.commit()
+        session.query(Message).filter(Message.timestamp < one_month_ago).delete()
+        session.commit()
 
     def save_message(self, message_id: str, timestamp: datetime, chat_jid: str, sender_jid: str, sender_push_name: str,
                      text: str, reply_to: Optional[str] = None):
         sender = self.get_sender(sender_jid)
+        session = scoped_session(self.session_maker)
+
         if not sender:
             sender = Sender(jid=sender_jid, push_name=sender_push_name)
-            self.session.merge(sender)
+            self.upsert(session, sender)
 
-        chat_message = Message(message_id=message_id, timestamp=timestamp, chat_jid=chat_jid,
-                               sender_jid=sender_jid, text=text, reply_to_id=reply_to)
-        self.session.merge(chat_message)
-        self.session.commit()
+        chat_message = Message(message_id=message_id, timestamp=timestamp.astimezone(timezone.utc),
+                               chat_jid=chat_jid, sender_jid=sender_jid, text=text, reply_to_id=reply_to)
+        self.upsert(session, chat_message)
+        session.commit()
 
     def save_group(self, group_jid: str, group_name: Optional[str], group_topic: Optional[str],
                    owner_jid: Optional[str]):
-        owner = self.session.query(Sender).filter_by(jid=owner_jid).first()
+        session = scoped_session(self.session_maker)
+
+        owner = session.query(Sender).filter_by(jid=owner_jid).first()
         if not owner:
             owner = Sender(jid=owner_jid)
-            self.session.add(owner)
+            self.upsert(session, owner)
 
         group = Group(group_jid=group_jid, group_name=group_name, group_topic=group_topic, owner_jid=owner_jid)
-        self.session.merge(group)
-        self.session.commit()
+        self.upsert(session, group)
+        session.commit()
 
     def get_group(self, group_jid: Union[JID, str]) -> Optional[Group]:
-        return self.session.query(Group).filter_by(group_jid=normalize_jid(group_jid)).first()
+        return scoped_session(self.session_maker). \
+            query(Group).filter_by(group_jid=normalize_jid(group_jid)).first()
 
     def fetch_messages(self, chat_jid: str, start_time: Optional[datetime] = None,
                        end_time: Optional[datetime] = None) -> Optional[List[Type[Message]]]:
-        q = self.session.query(Message).filter(Message.chat_jid == normalize_jid(chat_jid))
+        session = scoped_session(self.session_maker)
+
+        q = session.query(Message).filter(Message.chat_jid == normalize_jid(chat_jid))
 
         if start_time:
-            q = q.filter(Message.timestamp >= start_time)
+            q = q.filter(Message.timestamp >= start_time.astimezone(timezone.utc))
         if end_time:
-            q = q.filter(Message.timestamp <= end_time)
+            q = q.filter(Message.timestamp <= end_time.astimezone(timezone.utc))
 
         return q.all()
 
     def get_sender(self, jid) -> Optional[Sender]:
-        return self.session.query(Sender).filter_by(jid=normalize_jid(jid)).first()
+        return scoped_session(self.session_maker).query(Sender).filter_by(jid=normalize_jid(jid)).first()
+
+    @staticmethod
+    def upsert(session, entity: Base):
+        pkeys, vals = {}, {}
+        for f in entity.__table__.columns:
+            (pkeys if f.primary_key else vals)[f.name] = getattr(entity, f.name)
+        stmt = insert(entity.__table__).values(**{**pkeys, **vals})
+        stmt = stmt.on_conflict_do_update(set_={c.name: c for c in stmt.excluded if c.name not in pkeys})
+        session.execute(stmt)
