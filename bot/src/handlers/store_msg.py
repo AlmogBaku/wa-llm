@@ -11,13 +11,6 @@ from ..store import ChatStore
 
 
 async def save_message(store, msg):
-    rply = None
-    em = msg.raw_message_event.message.extendedTextMessage
-    if em is not None:
-        if em.contextInfo is not None:
-            if em.contextInfo.stanzaId is not None:
-                rply = em.contextInfo.stanzaId
-
     store.save_message(
         timestamp=msg.raw_message_event.info.timestamp.ToDatetime(),
         message_id=msg.raw_message_event.info.id,
@@ -25,7 +18,7 @@ async def save_message(store, msg):
         sender_jid=msg.raw_message_event.info.message_source.sender,
         sender_push_name=msg.raw_message_event.info.push_name,
         text=msg.text,
-        reply_to=rply,
+        reply_to=msg.reply_to,
     )
 
 

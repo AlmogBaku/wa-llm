@@ -2,7 +2,7 @@ import contextvars
 import inspect
 from dataclasses import dataclass
 from os.path import basename
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 from loguru import logger
 
@@ -70,6 +70,7 @@ class Message:
     mentioned_me: bool = False
     raw_message_event: MessageEvent
     raw_account_context: AccountContext
+    reply_to: Optional[str] = None
 
     def __init__(self, event: Event):
         self.raw_message_event = event.message_event
@@ -81,8 +82,12 @@ class Message:
         if err is not None:
             logger.warning(f"Failed to parse my JID: {err}")
 
-        msg = event.message_event
+        msg: MessageEvent = event.message_event
         if msg.message.extendedTextMessage is not None:
+            if msg.message.extendedTextMessage.contextInfo is not None:
+                if msg.message.extendedTextMessage.contextInfo.stanzaId is not None:
+                    self.reply_to = msg.message.extendedTextMessage.contextInfo.stanzaId
+
             if msg.message.conversation == "" and msg.message.extendedTextMessage.text is not None:
                 self._text = msg.message.extendedTextMessage.text
 
@@ -90,6 +95,12 @@ class Message:
                 if msg.message.extendedTextMessage.contextInfo.mentionedJid is not None and self.my_jid is not None:
                     if self.my_jid.normalize_str() in msg.message.extendedTextMessage.contextInfo.mentionedJid:
                         self.mentioned_me = True
+
+        if self._text == "" and msg.message.reactionMessage is not None:
+            if msg.message.reactionMessage.key.remoteJid != str(
+                    self.my_jid.to_non_ad()):  # don't handle reactions to my own messages
+                self._text = msg.message.reactionMessage.text
+                self.reply_to = msg.message.reactionMessage.key.id
 
     @property
     def text(self) -> str:
@@ -137,6 +148,7 @@ class EventsManager:
         logger.debug(f"Was I mentioned? {msg.mentioned_me}")
         if msg.text == "":
             logger.debug("got empty message", msg)
+            logger.debug(msg)
 
         for handler in _message_handlers:
             logger.debug(f"Calling handler {basename(inspect.getfile(handler))}#{handler.__name__}()")
