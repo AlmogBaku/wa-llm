@@ -3,6 +3,8 @@ from datetime import datetime
 
 from langchain import OpenAI
 from langchain.agents import initialize_agent, AgentType, tool, load_tools
+from langchain.chat_models import ChatOpenAI
+from langchain.schema import OutputParserException
 from langchain.tools import BaseTool
 
 from ..events import Context, CommandResult, msg_cmd, Message, message_handler
@@ -25,17 +27,27 @@ def handle_message(ctx: Context, msg: Message) -> CommandResult:
     if txt == "":
         return
 
-    llm = OpenAI(temperature=0)
+    llm1 = OpenAI(temperature=0)
+    llm = ChatOpenAI(temperature=0)
 
-    tools = load_tools(["requests_all", "llm-math", "open-meteo-api", "wikipedia"], llm=llm)
+    tools = load_tools(["requests_all", "llm-math", "open-meteo-api", "wikipedia"], llm=llm1)
     tools += [
         ChatHistoryTool(store=ctx.store, chat_jid=msg.chat, my_jid=msg.my_jid),
         say,
         today,
+        date_difference,
     ]
     agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True)
 
-    response = agent.run(txt)
+    try:
+        response = agent.run(txt)
+    except OutputParserException as e:
+        response = str(e)
+
+        pattern = r'say\("([^"]*)"\)'
+        match = re.search(pattern, response)
+        if match:
+            response = match.group(1)
     yield msg_cmd(msg.chat, response)
 
 
@@ -45,12 +57,30 @@ def say(text: str) -> str:
     something."""
     return text
 
+
 @tool
-def today() -> str:
+def today(text: str) -> str:
     """Get today's date and time information.
     You MUST use this tool every time you want to get today's date or time information."""
     return (f"Today is {datetime.now().strftime('%A %d %B %Y')} and the time is {datetime.now().strftime('%H:%M')}\n"
             f"In ISO format this is {datetime.now().isoformat()}")
+
+
+@tool
+def date_difference(text: str) -> str:
+    """Return the difference between two dates in seconds.
+    You MUST use this tool every time you want to get the difference between two dates or times.
+    This is useful for when you want to know how long it has been since something happened, or find out how long it will
+    be until something happens, or how long it has been since something happened.
+
+    The input to this tool is a comma separated start and end time in ISO format. For example:
+    `2021-01-01T00:00:00,2021-01-01T23:59:59` would mean you want to see the difference between the 1-1-2021 00:00 and 1-1-2021 23:59.
+    """
+
+    start, end = text.strip().split(",")
+    start = datetime.fromisoformat(start.strip())
+    end = datetime.fromisoformat(end.strip())
+    return str((end - start).total_seconds())
 
 
 class ChatHistoryTool(BaseTool):
