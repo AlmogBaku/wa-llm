@@ -3,6 +3,8 @@ from typing import List, Generator
 
 from langchain import OpenAI
 from langchain.chains.summarize import load_summarize_chain
+from langchain.chains.summarize.map_reduce_prompt import prompt_template
+from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import PlaywrightURLLoader
 from langchain.schema import Document
 from langchain.text_splitter import CharacterTextSplitter
@@ -36,8 +38,12 @@ def link_summarizer(links: List[str]) -> Generator[LinkSummary, None, None]:
     # Add "http://" if the scheme is missing from the URL
     links = [l if l.startswith("http") else f"http://{l}" for l in links]
 
-    llm = OpenAI(temperature=0)
+    llm = ChatOpenAI(temperature=0)
     text_splitter = CharacterTextSplitter.from_tiktoken_encoder()
+    olf = text_splitter._length_function
+    text_splitter._length_function = lambda x: olf(x) + olf(prompt_template)
+
+    chain = load_summarize_chain(llm, chain_type="map_reduce")
 
     loader = PlaywrightURLLoader(urls=links, remove_selectors=["header", "footer", "script", "style", "iframe", "nav"])
     pages = loader.load()
@@ -47,7 +53,6 @@ def link_summarizer(links: List[str]) -> Generator[LinkSummary, None, None]:
         texts = text_splitter.split_text(page.page_content)
         docs = [Document(page_content=t) for t in texts]
 
-        chain = load_summarize_chain(llm, chain_type="map_reduce")
         summary = chain.run(docs)
         yield LinkSummary(url=page.metadata['source'], summary=summary)
 

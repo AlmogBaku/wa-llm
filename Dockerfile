@@ -38,12 +38,6 @@ RUN apt-get update -y && apt-get install ffmpeg gcc g++ python3-dev -y
 
 RUN pip install --upgrade pip
 
-RUN addgroup --gid 65532 nonroot
-RUN adduser -u 65532 -G nonroot -h /home/nonroot -D nonroot
-RUN mkdir -p /socket && chown -R 65532:nonroot /socket
-RUN mkdir -p /records && chown -R 65532:nonroot /records
-RUN mkdir -p /.local && chown -R 65532:nonroot /.local
-
 WORKDIR /bot
 COPY ./requirements.txt /bot/
 RUN pip install -r requirements.txt
@@ -51,6 +45,5 @@ RUN pip install -r requirements.txt
 COPY ./bot /bot
 COPY --from=buf /workspace/bot/src/proto /bot/src/proto
 
-USER 65532:65532
 ENV PYTHONUNBUFFERED=1
 CMD [ "python", "./main.py" ]
