@@ -15,6 +15,7 @@ from ..store import ChatStore
 
 _model: Whisper | None = None
 
+
 @lru_cache(maxsize=1)
 def get_model() -> Whisper:
     _MODEL_NAME = os.environ.get("GGML_MODEL", "tiny")
@@ -45,6 +46,12 @@ def handle_message(ctx: Context, msg: Message) -> CommandResult:
 
     if msg.raw_message_event.info.type != "media" or msg.raw_message_event.info.media_type != "ptt":
         return
+
+    if msg.raw_message_event.message.audioMessage or msg.raw_message_event.message.audioMessage.url is None or \
+            msg.raw_message_event.message.audioMessage.url == "":
+        logger.warning(f"Invalid audio message: {msg.raw_message_event}")
+        return
+        logger.debug(str(msg.raw_message_event))
 
     stub: ChatManagerStub = ctx.stub
     resp: CommandResponse = stub.Execute(download_cmd(msg.raw_message_event))

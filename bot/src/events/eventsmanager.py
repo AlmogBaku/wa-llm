@@ -153,7 +153,7 @@ class EventsManager:
         logger.debug(f"Was I mentioned? {msg.mentioned_me}")
         if msg.text == "":
             logger.debug("got empty message", msg)
-            logger.debug(msg)
+            logger.debug(str(msg))
 
         for handler in _message_handlers:
             logger.debug(f"Calling handler {basename(inspect.getfile(handler))}#{handler.__name__}()")

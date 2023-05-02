@@ -22,7 +22,7 @@ func (m *mgr) Execute(ctx context.Context, cmd *proto.Command) (*proto.CommandRe
 	case *proto.Command_GroupInfoCmd:
 		return m.groupInfoCmd(ctx, cmd)
 	case *proto.Command_DownloadCmd:
-		return m.downloadMedia(ctx, cmd)
+		return m.downloadMediaCmd(ctx, cmd)
 	default:
 		m.logger.Warnf("Unknown action: %v", cmd.Operation)
 		return nil, fmt.Errorf("unknown action: %v", cmd.Operation)
@@ -75,7 +75,7 @@ func (m *mgr) ackMessageCmd(ctx context.Context, cmd *proto.Command) (*proto.Com
 	return &proto.CommandResponse{Uuid: cmd.Uuid}, nil
 }
 
-func (m *mgr) downloadMedia(ctx context.Context, cmd *proto.Command) (*proto.CommandResponse, error) {
+func (m *mgr) downloadMediaCmd(ctx context.Context, cmd *proto.Command) (*proto.CommandResponse, error) {
 	var downloadableMessage whatsmeow.DownloadableMessage
 	switch v := cmd.GetDownloadCmd().DownloadableMessage.(type) {
 	case *proto.DownloadCmd_AudioMessage:

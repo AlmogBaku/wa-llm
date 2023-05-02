@@ -31,6 +31,9 @@ func (m *mgr) Subscribe(sr *proto.SubscribeRequest, stream proto.ChatManager_Sub
 	for {
 		select {
 		case e := <-m.events:
+			if e == nil {
+				continue
+			}
 			if e.Timestamp.AsTime().Before(time.Now().Add(-10 * time.Minute)) {
 				m.logger.Warnf("Skipping event %s, too old", e.Uuid)
 				continue
