@@ -47,7 +47,7 @@ def handle_message(ctx: Context, msg: Message) -> CommandResult:
     if msg.raw_message_event.info.type != "media" or msg.raw_message_event.info.media_type != "ptt":
         return
 
-    if msg.raw_message_event.message.audioMessage or msg.raw_message_event.message.audioMessage.url is None or \
+    if msg.raw_message_event.message.audioMessage is None or msg.raw_message_event.message.audioMessage.url is None or \
             msg.raw_message_event.message.audioMessage.url == "":
         logger.warning(f"Invalid audio message: {msg.raw_message_event}")
         return
