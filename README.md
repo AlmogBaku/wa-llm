@@ -17,27 +17,18 @@ The project is composed by two main components:
 
 ## Prerequisites
 
-1. Go
-2. Python
-3. Buf (https://docs.buf.build/installation)
+1. Docker
 
-## Building
+## Running the project
 
-1. Create a virtual environment for python and install the requirements
-
-```shell
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+```console
+docker compose up
 ```
 
-2. Build the chat-manager
+# Development
+When running locally, you need to install `whispercpp` package for python.
+This is not included in the `requirements.txt` file because you might need to install it from source.
 
-```shell
-make build-chat-manager
-```
-
-3. Running the project
-```shell
-make run
+```console
+pip install git+https://github.com/aarnphm/whispercpp.git -vv
 ```

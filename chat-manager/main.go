@@ -22,12 +22,12 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		panic("Error loading .env file")
+		fmt.Println("Warning: error loading .env file", err)
 	}
 
 	dbUri := "postgresql://postgres:almog1is2the3best4@localhost:5432/bot"
-	if os.Getenv("DB_URL") != "" {
-		dbUri = os.Getenv("DB_URL")
+	if os.Getenv("DB_URI") != "" {
+		dbUri = os.Getenv("DB_URI")
 	}
 
 	dbLog := waLog.Stdout("Database", "DEBUG", true)
@@ -88,6 +88,10 @@ func main() {
 
 func serve(ctx context.Context, bot manager.ChatManager) error {
 	uds := "/tmp/chat-mgr.sock"
+	if os.Getenv("UDS_PATH") != "" {
+		uds = os.Getenv("UDS_PATH")
+	}
+
 	if _, err := os.Stat(uds); err == nil {
 		if err := os.RemoveAll(uds); err != nil {
 			return fmt.Errorf("failed to remove uds file: %w", err)

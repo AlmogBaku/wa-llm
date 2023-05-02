@@ -1,14 +1,49 @@
-version: '3.8'
+version: '3.9'
 
 services:
   postgres:
-   image: postgres:latest
-   container_name: local_postgres
-   restart: unless-stopped
-   ports:
-     - "5432:5432"
-   environment:
-     POSTGRES_PASSWORD: almog1is2the3best4
-     POSTGRES_DB: bot
-   volumes:
-     - ./.data/pgdata:/var/lib/postgresql/data
+    image: postgres:latest
+    container_name: local_postgres
+    restart: on-failure
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: almog1is2the3best4
+      POSTGRES_DB: bot
+    volumes:
+      - ./.data/pgdata:/var/lib/postgresql/data
+  chat-manager:
+    build:
+        context: .
+        target: chat-manager
+    container_name: chat-manager
+    restart: on-failure
+    environment:
+      - DB_URI=postgresql://postgres:almog1is2the3best4@postgres:5432/bot?sslmode=disable
+      - UDS_PATH=/socket/chat-mgr.sock
+      - RECORDS_PATH=/records
+    depends_on:
+      - postgres
+    volumes:
+      - socket_volume:/socket
+      - records:/records
+  bot:
+    build:
+      context: .
+      target: bot
+    container_name: bot
+    restart: on-failure
+    environment:
+      - DB_URI=postgresql://postgres:almog1is2the3best4@postgres:5432/bot?sslmode=disable
+      - CHAT_MGR_GRPC_URL=unix:///socket/chat-mgr.sock
+      - GGML_MODEL
+      - OPENAI_API_KEY
+    depends_on:
+      - postgres
+      - chat-manager
+    volumes:
+      - socket_volume:/socket
+      - records:/records
+volumes:
+  socket_volume:
+  records:

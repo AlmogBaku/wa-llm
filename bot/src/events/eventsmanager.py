@@ -151,9 +151,9 @@ class EventsManager:
     def _handle_message(ctx: Context, msg: Message) -> CommandResult:
         logger.debug(f"Got message: {msg.text}")
         logger.debug(f"Was I mentioned? {msg.mentioned_me}")
-        if msg.text == "":
+        if msg.text == "" and msg.raw_message_event.info.media_type != "ptt":
             logger.debug("got empty message", msg)
-            logger.debug(str(msg))
+            logger.debug(str(msg.raw_message_event))
 
         for handler in _message_handlers:
             logger.debug(f"Calling handler {basename(inspect.getfile(handler))}#{handler.__name__}()")

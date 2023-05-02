@@ -112,10 +112,15 @@ func (m *mgr) downloadMediaCmd(ctx context.Context, cmd *proto.Command) (*proto.
 		return nil, fmt.Errorf("failed to parse url: %v", err)
 	}
 
-	dname, err := os.MkdirTemp("", "chat-manager")
-	if err != nil {
-		m.logger.Errorf("Failed to create temporary directory: %w", err)
-		return nil, fmt.Errorf("failed to create temporary directory: %v", err)
+	dname := ""
+	if os.Getenv("RECORDS_PATH") != "" {
+		dname = os.Getenv("RECORDS_PATH")
+	} else {
+		dname, err = os.MkdirTemp("", "chat-manager")
+		if err != nil {
+			m.logger.Errorf("Failed to create temporary directory: %w", err)
+			return nil, fmt.Errorf("failed to create temporary directory: %v", err)
+		}
 	}
 
 	fname := fmt.Sprintf("%s/%s-%s", dname, cmd.GetDownloadCmd().GetChatJid(), path.Base(u.Path))

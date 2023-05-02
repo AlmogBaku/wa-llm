@@ -31,7 +31,7 @@ build-proto: ## Build protobuf
 .PHONY: build-chat-manager
 build-chat-manager: build-proto ## Build chat manager
 	@echo "Building chat manager"
-	cd chat-manager && go build -ldflags "-s -w -X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ../out/chat-manager main.go
+	cd chat-manager && go build -ldflags "-s -w -X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o ../out/chat-manager chat-manager/main.go
 
 .PHONY: build-and-run
 build-and-run: build-chat-manager run ## Build and run the project
