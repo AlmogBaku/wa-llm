@@ -18,13 +18,13 @@ def handle_message(ctx: Context, msg: Message) -> CommandResult:
 
     txt = msg.text_replace_my_mentions("")
 
-    cmd = '!'
-    if not txt.startswith(cmd):
-        return
-
-    txt = txt[len(cmd):].strip()
-    if txt == "":
-        return
+    # cmd = '!'
+    # if not txt.startswith(cmd):
+    #     return
+    #
+    # txt = txt[len(cmd):].strip()
+    # if txt == "":
+    #     return
 
     llm1 = OpenAI(temperature=0)
     llm = ChatOpenAI(temperature=0)
@@ -52,4 +52,4 @@ Answer the following questions as best you can. You have access to the following
         match = re.search(pattern, response)
         if match:
             response = match.group(1)
-    yield msg_cmd(msg.chat, response)
+    yield msg_cmd(msg.chat, f"@{msg.sender_jid.user}, {response}")

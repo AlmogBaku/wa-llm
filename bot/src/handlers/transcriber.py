@@ -51,7 +51,6 @@ def handle_message(ctx: Context, msg: Message) -> CommandResult:
             msg.raw_message_event.message.audioMessage.url == "":
         logger.warning(f"Invalid audio message: {msg.raw_message_event}")
         return
-        logger.debug(str(msg.raw_message_event))
 
     stub: ChatManagerStub = ctx.stub
     resp: CommandResponse = stub.Execute(download_cmd(msg.raw_message_event))
