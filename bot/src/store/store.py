@@ -98,7 +98,7 @@ class Group(Base):
 
 class ChatStore:
     def __init__(self, db_url):
-        self.engine = create_engine(db_url)
+        self.engine = create_engine(db_url, pool_size=10, max_overflow=20)
         self.session_maker = sessionmaker(bind=self.engine, autoflush=False)
 
     def create_tables(self):
