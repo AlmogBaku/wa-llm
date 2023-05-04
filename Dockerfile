@@ -31,7 +31,7 @@ COPY --from=build /out/chat-manager .
 
 ENTRYPOINT ["/chat-manager"]
 
-FROM mcr.microsoft.com/playwright/python:v1.32.1-jammy as bot
+FROM mcr.microsoft.com/playwright/python:v1.33.0-jammy as bot
 LABEL org.opencontainers.image.source="https://github.com/AlmogBaku/wa-llm"
 
 RUN apt-get update -y && apt-get install ffmpeg -y
