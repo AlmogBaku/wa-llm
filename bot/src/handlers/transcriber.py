@@ -70,6 +70,10 @@ def handle_message(ctx: Context, msg: Message) -> CommandResult:
         logger.warning(f"Failed to transcribe audio: {transcription}")
         return
 
+    if len(transcription.text.split(" ")) < 3:
+        yield msg_cmd(msg.chat, f"@{msg.sender_jid.user} said:\n{transcription.text}", reply_to=msg.raw_message_event)
+        return
+
     llm = ChatOpenAI(temperature=0)
     prompt = PromptTemplate(
         input_variables=["transcription"],
