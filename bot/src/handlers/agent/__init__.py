@@ -7,7 +7,7 @@ from langchain.schema import OutputParserException
 
 from .summarize_chat_tool import SummarizeChatHistory
 from .summarize_text_tool import SummarizeText
-from .util_tools import say, today, date_difference
+from .util_tools import say, today, date_difference, time_since_today
 from ...events import Context, CommandResult, msg_cmd, Message, message_handler
 
 
@@ -33,6 +33,7 @@ def handle_message(ctx: Context, msg: Message) -> CommandResult:
     tools += [
         SummarizeChatHistory(llm=llm, store=ctx.store, chat_jid=msg.chat, my_jid=msg.my_jid),
         say,
+        time_since_today,
         today,
         date_difference,
         SummarizeText(llm=llm),

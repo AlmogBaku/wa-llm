@@ -56,7 +56,8 @@ message DownloadCmd {
 }
 message DownloadResponse {
     string message_id = 1;
-    string file_uri = 3;
+    bytes data = 2;
+    string mime_type = 3;
 }
 
 message GroupInfoCmd {

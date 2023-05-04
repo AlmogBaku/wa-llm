@@ -1,7 +1,6 @@
 import re
 from typing import List, Generator
 
-from langchain import OpenAI
 from langchain.chains.summarize import load_summarize_chain
 from langchain.chains.summarize.map_reduce_prompt import prompt_template
 from langchain.chat_models import ChatOpenAI

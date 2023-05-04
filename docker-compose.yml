@@ -14,19 +14,17 @@ services:
       - ./.data/pgdata:/var/lib/postgresql/data
   chat-manager:
     build:
-        context: .
-        target: chat-manager
+      context: .
+      target: chat-manager
     container_name: chat-manager
     restart: on-failure
     environment:
       - DB_URI=postgresql://postgres:almog1is2the3best4@postgres:5432/bot?sslmode=disable
       - UDS_PATH=/socket/chat-mgr.sock
-      - RECORDS_PATH=/records
     depends_on:
       - postgres
     volumes:
       - socket_volume:/socket
-      - records:/records
   bot:
     build:
       context: .
@@ -43,7 +41,5 @@ services:
       - chat-manager
     volumes:
       - socket_volume:/socket
-      - records:/records
 volumes:
   socket_volume:
-  records:

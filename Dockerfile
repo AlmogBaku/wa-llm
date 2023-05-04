@@ -34,7 +34,7 @@ ENTRYPOINT ["/chat-manager"]
 FROM mcr.microsoft.com/playwright/python:v1.32.1-jammy as bot
 LABEL org.opencontainers.image.source="https://github.com/AlmogBaku/wa-llm"
 
-RUN apt-get update -y && apt-get install ffmpeg gcc g++ python3-dev -y
+RUN apt-get update -y && apt-get install ffmpeg -y
 
 RUN pip install --upgrade pip
 

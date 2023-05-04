@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from langchain.tools import tool
 
@@ -16,6 +16,21 @@ def today(text: str) -> str:
     You MUST use this tool every time you want to get today's date or time information."""
     return (f"Today is {datetime.now().strftime('%A %d %B %Y')} and the time is {datetime.now().strftime('%H:%M')}\n"
             f"In ISO format this is {datetime.now().isoformat()}")
+
+
+@tool
+def time_since_today(text: str) -> str:
+    """Get relative time and date since today.
+    You MUST use this tool every time you want to get relative time and date since today, In example, when you want to
+    know when was yesterday, or when was 2 days ago.
+    The input for this model is the difference in seconds from now. For example, if you want to know what was the date
+    and time 1 day ago, you would input 86400, which is the number of seconds in a day.
+    """
+
+    seconds = int(text)
+    ts = datetime.now() - timedelta(seconds=seconds)
+    return (f"Today minus {seconds} seconds is {ts.strftime('%A %d %B %Y')} and tthe time is {ts.strftime('%H:%M')}\n"
+            f"In ISO format this is {ts.isoformat()}")
 
 
 @tool

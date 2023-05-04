@@ -5,11 +5,10 @@ from time import sleep
 import grpc
 from dotenv import load_dotenv
 from loguru import logger
-
 from src import start_bot
 
 load_dotenv()
-# logger.add(".logs/file_{time}.log")
+
 
 def run():
     executor = ThreadPoolExecutor()

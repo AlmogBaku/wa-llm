@@ -7,9 +7,6 @@ import (
 	"go.mau.fi/whatsmeow"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types"
-	"net/url"
-	"os"
-	"path"
 	"unsafe"
 )
 
@@ -75,6 +72,10 @@ func (m *mgr) ackMessageCmd(ctx context.Context, cmd *proto.Command) (*proto.Com
 	return &proto.CommandResponse{Uuid: cmd.Uuid}, nil
 }
 
+type MimeTyper interface {
+	GetMimetype() string
+}
+
 func (m *mgr) downloadMediaCmd(ctx context.Context, cmd *proto.Command) (*proto.CommandResponse, error) {
 	var downloadableMessage whatsmeow.DownloadableMessage
 	switch v := cmd.GetDownloadCmd().DownloadableMessage.(type) {
@@ -105,44 +106,18 @@ func (m *mgr) downloadMediaCmd(ctx context.Context, cmd *proto.Command) (*proto.
 		m.logger.Errorf("Failed to download media: %w", err)
 		return nil, fmt.Errorf("failed to download media: %v", err)
 	}
-	//save to file
-	u, err := url.Parse(downloadableMessage.GetDirectPath())
-	if err != nil {
-		m.logger.Errorf("Failed to parse url: %w", err)
-		return nil, fmt.Errorf("failed to parse url: %v", err)
-	}
 
-	dname := ""
-	if os.Getenv("RECORDS_PATH") != "" {
-		dname = os.Getenv("RECORDS_PATH")
-	} else {
-		dname, err = os.MkdirTemp("", "chat-manager")
-		if err != nil {
-			m.logger.Errorf("Failed to create temporary directory: %w", err)
-			return nil, fmt.Errorf("failed to create temporary directory: %v", err)
-		}
-	}
-
-	fname := fmt.Sprintf("%s/%s-%s", dname, cmd.GetDownloadCmd().GetChatJid(), path.Base(u.Path))
-	file, err := os.Create(fname)
-	if err != nil {
-		m.logger.Errorf("Failed to create file: %w", err)
-		return nil, fmt.Errorf("failed to create file: %v", err)
-	}
-
-	defer file.Close()
-	_, err = file.Write(b)
-	if err != nil {
-		m.logger.Errorf("Failed to write file: %w", err)
-		return nil, fmt.Errorf("failed to write file: %v", err)
-	}
-	return &proto.CommandResponse{
+	ret := &proto.CommandResponse{
 		Uuid: cmd.Uuid,
 		Response: &proto.CommandResponse_DownloadResponse{
 			DownloadResponse: &proto.DownloadResponse{
 				MessageId: cmd.GetDownloadCmd().MessageId,
-				FileUri:   fmt.Sprintf("file://%s", file.Name()),
+				Data:      b,
 			},
 		},
-	}, nil
+	}
+	if mt, ok := downloadableMessage.(MimeTyper); ok {
+		ret.GetDownloadResponse().MimeType = mt.GetMimetype()
+	}
+	return ret, nil
 }
