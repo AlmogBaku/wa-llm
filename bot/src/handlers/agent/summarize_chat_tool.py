@@ -45,12 +45,12 @@ CONCISE SUMMARY:"""
         start_of_today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         end_of_today = datetime.now().replace(hour=23, minute=59, second=59, microsecond=999999)
 
-        times = query.split(",")
+        times = query.strip().split(",")
         if len(times) == 2:
             if times[0].title() != "None":
-                start_of_today = datetime.fromisoformat(times[0])
+                start_of_today = datetime.fromisoformat(times[0].strip())
             if times[1].title() != "None":
-                end_of_today = datetime.fromisoformat(times[1])
+                end_of_today = datetime.fromisoformat(times[1].strip())
 
         msgs = self.store.fetch_messages(self.chat_jid, start_of_today, end_of_today)
 

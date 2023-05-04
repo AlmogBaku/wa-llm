@@ -27,7 +27,7 @@ def time_since_today(text: str) -> str:
     and time 1 day ago, you would input 86400, which is the number of seconds in a day.
     """
 
-    seconds = int(text)
+    seconds = int(text.strip())
     ts = datetime.now() - timedelta(seconds=seconds)
     return (f"Today minus {seconds} seconds is {ts.strftime('%A %d %B %Y')} and tthe time is {ts.strftime('%H:%M')}\n"
             f"In ISO format this is {ts.isoformat()}")
