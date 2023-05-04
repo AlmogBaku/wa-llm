@@ -3,8 +3,7 @@ from io import BytesIO
 
 import ffmpeg
 import openai
-from langchain import PromptTemplate, LLMChain
-from langchain.chat_models import ChatOpenAI
+from langchain import PromptTemplate, LLMChain, OpenAI
 from loguru import logger
 
 from ..events import message_handler, Context, CommandResult, Message, download_cmd, msg_cmd
@@ -70,20 +69,26 @@ def handle_message(ctx: Context, msg: Message) -> CommandResult:
         logger.warning(f"Failed to transcribe audio: {transcription}")
         return
 
-    if len(transcription.text.split(" ")) < 3:
-        yield msg_cmd(msg.chat, f"@{msg.sender_jid.user} said:\n{transcription.text}", reply_to=msg.raw_message_event)
-        return
+    yield msg_cmd(msg.chat, f"@{msg.sender_jid.user} said:\n{transcription.text}", reply_to=msg.raw_message_event)
+    return
 
-    llm = ChatOpenAI(temperature=0)
-    prompt = PromptTemplate(
-        input_variables=["transcription"],
-        template=(
-            "Return a formatted, punctuated, splitted to paragraph, and fixed transcription WITHOUT changing, adding "
-            "or removing anything. DO NOT wrap it with quotes or add any comments/notes/explanations.\n\n"
-            "{transcription}"
-        )
-    )
-    chain = LLMChain(llm=llm, prompt=prompt)
-    result = chain.run(transcription.text)
-
-    yield msg_cmd(msg.chat, f"@{msg.sender_jid.user} said:\n{result}", reply_to=msg.raw_message_event)
+    # # todo fix this
+    #
+    # if len(transcription.text.split(" ")) < 3:
+    #     yield msg_cmd(msg.chat, f"@{msg.sender_jid.user} said:\n{transcription.text}", reply_to=msg.raw_message_event)
+    #     return
+    #
+    # llm = OpenAI(temperature=0)
+    # prompt = PromptTemplate(
+    #     input_variables=["transcription"],
+    #     template=(
+    #         "Return a formatted, punctuated, splitted to paragraph, and fixed transcription. DO NOT change, add "
+    #         "or remove anything from the original content. DO NOT wrap it with quotes or add any "
+    #         "comments/notes/explanations.\n\n"
+    #         "{transcription}"
+    #     )
+    # )
+    # chain = LLMChain(llm=llm, prompt=prompt)
+    # result = chain.run(transcription.text)
+    #
+    # yield msg_cmd(msg.chat, f"@{msg.sender_jid.user} said:\n{result}", reply_to=msg.raw_message_event)
