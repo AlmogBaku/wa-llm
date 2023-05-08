@@ -1,6 +1,7 @@
 import contextvars
 import inspect
 from dataclasses import dataclass
+from datetime import datetime
 from os.path import basename
 from typing import Callable, List, Optional
 
@@ -69,6 +70,7 @@ class Message:
     my_jid: JID = None
     sender_jid: JID = None
     mentioned_me: bool = False
+    timestamp: datetime
     raw_message_event: MessageEvent
     raw_account_context: AccountContext
     reply_to: Optional[str] = None
@@ -78,6 +80,7 @@ class Message:
         self.raw_account_context = event.account_context
         self._text = event.message_event.message.conversation
         self.chat = event.message_event.info.message_source.chat
+        self.timestamp = event.message_event.info.timestamp.ToDatetime()
 
         self.sender_jid, err = parse_jid(event.message_event.info.message_source.sender)
         if err is not None:

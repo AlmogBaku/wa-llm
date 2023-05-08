@@ -12,7 +12,7 @@ from ..store import ChatStore
 
 async def save_message(store, msg):
     store.save_message(
-        timestamp=msg.raw_message_event.info.timestamp.ToDatetime(),
+        timestamp=msg.timestamp,
         message_id=msg.raw_message_event.info.id,
         chat_jid=msg.raw_message_event.info.message_source.chat,
         sender_jid=msg.raw_message_event.info.message_source.sender,

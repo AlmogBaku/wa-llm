@@ -1,4 +1,5 @@
 import re
+from datetime import datetime, timedelta
 from typing import List, Generator
 
 from langchain.chains.summarize import load_summarize_chain
@@ -58,6 +59,10 @@ def link_summarizer(links: List[str]) -> Generator[LinkSummary, None, None]:
 
 @message_handler
 def handle_message(ctx: Context, msg: Message) -> CommandResult:
+    # ignore messages older than 30 minutes
+    if msg.timestamp < (datetime.now() - timedelta(minutes=30)):
+        return
+
     chat_jid, err = parse_jid(msg.chat)
     if err is not None:
         logger.warning(f"Failed to parse chat JID: {err}")

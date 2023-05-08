@@ -1,9 +1,9 @@
 import os
+from datetime import datetime, timedelta
 from io import BytesIO
 
 import ffmpeg
 import openai
-from langchain import PromptTemplate, LLMChain, OpenAI
 from loguru import logger
 
 from ..events import message_handler, Context, CommandResult, Message, download_cmd, msg_cmd
@@ -15,6 +15,10 @@ from ..store import ChatStore
 
 @message_handler
 def handle_message(ctx: Context, msg: Message) -> CommandResult:
+    # ignore messages older than 30 minutes
+    if msg.timestamp < (datetime.now() - timedelta(minutes=30)):
+        return
+
     chat_jid, err = parse_jid(msg.chat)
     if err is not None:
         logger.warning(f"Failed to parse chat JID: {err}")
