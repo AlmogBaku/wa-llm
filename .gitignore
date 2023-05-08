@@ -8,3 +8,4 @@ bot/src/proto/*_pb2.pyi
 bot/src/proto/*_pb2_grpc.py
 out/
 .data/
+__pycache__/
