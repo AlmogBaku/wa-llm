@@ -1,10 +1,14 @@
 import os
-from datetime import datetime, timedelta
+from datetime import timedelta
 from io import BytesIO
+from typing import List, Optional
 
 import ffmpeg
 import openai
+from langchain.chat_models import ChatOpenAI
+from langchain.schema import SystemMessage, HumanMessage, AIMessage
 from loguru import logger
+from pydantic import BaseModel
 
 from ..events import message_handler, Context, CommandResult, Message, download_cmd, msg_cmd
 from ..jid import parse_jid
@@ -13,10 +17,19 @@ from ..proto.wa_handler_pb2_grpc import ChatManagerStub
 from ..store import ChatStore
 
 
+class Change(BaseModel):
+    change: str
+    reason: str
+
+
+class EnhancedTranscription(BaseModel):
+    output: str
+    changes: Optional[List[Change]]
+
+
 @message_handler
 def handle_message(ctx: Context, msg: Message) -> CommandResult:
-    # ignore messages older than 30 minutes
-    if msg.timestamp < (datetime.now() - timedelta(minutes=30)):
+    if msg.sent_before(timedelta(minutes=30)):
         return
 
     chat_jid, err = parse_jid(msg.chat)
@@ -73,26 +86,38 @@ def handle_message(ctx: Context, msg: Message) -> CommandResult:
         logger.warning(f"Failed to transcribe audio: {transcription}")
         return
 
-    yield msg_cmd(msg.chat, f"@{msg.sender_jid.user} said:\n{transcription.text}", reply_to=msg.raw_message_event)
-    return
+    if len(transcription.text.split(" ")) < 4:
+        yield msg_cmd(msg.chat, f"@{msg.sender_jid.user} said:\n{transcription.text}", reply_to=msg.raw_message_event)
+        return
 
-    # # todo fix this
-    #
-    # if len(transcription.text.split(" ")) < 3:
-    #     yield msg_cmd(msg.chat, f"@{msg.sender_jid.user} said:\n{transcription.text}", reply_to=msg.raw_message_event)
-    #     return
-    #
-    # llm = OpenAI(temperature=0)
-    # prompt = PromptTemplate(
-    #     input_variables=["transcription"],
-    #     template=(
-    #         "Return a formatted, punctuated, splitted to paragraph, and fixed transcription. DO NOT change, add "
-    #         "or remove anything from the original content. DO NOT wrap it with quotes or add any "
-    #         "comments/notes/explanations.\n\n"
-    #         "{transcription}"
-    #     )
-    # )
-    # chain = LLMChain(llm=llm, prompt=prompt)
-    # result = chain.run(transcription.text)
-    #
-    # yield msg_cmd(msg.chat, f"@{msg.sender_jid.user} said:\n{result}", reply_to=msg.raw_message_event)
+    llm = ChatOpenAI(temperature=0)
+    prompt = (
+        "The following message might have transcription errors. If it has transcription errors, fix them and "
+        "state your changes and reasons. Respond in a JSONL format: output<str>, changes<[]change<{change<str>, "
+        "reason<str>}>  where each change should include a 'change' field containing the corrected word and a "
+        "'reason' field explaining why the change was made. If you don't have any changes, omit the changes field. "
+        "Respond ONLY in a valid compacted JSONL format, do not add comments."
+    )
+    result: AIMessage = llm([
+        SystemMessage(content=prompt),
+        HumanMessage(content=transcription.text),
+    ])
+
+    if result.content is None or result.content == "":
+        logger.warning(f"Failed to enhance transcription: {result}")
+        yield msg_cmd(msg.chat, f"@{msg.sender_jid.user} said:\n{transcription.text}", reply_to=msg.raw_message_event)
+        return
+
+    try:
+        et = EnhancedTranscription.parse_raw(result.content)
+    except Exception as e:
+        logger.warning(f"Failed to parse enhanced transcription: {e}")
+        yield msg_cmd(msg.chat, f"@{msg.sender_jid.user} said:\n{transcription.text}", reply_to=msg.raw_message_event)
+        return
+
+    if et.output is None or et.output == "":
+        logger.warning(f"Failed to enhance transcription: {result}")
+        yield msg_cmd(msg.chat, f"@{msg.sender_jid.user} said:\n{transcription.text}", reply_to=msg.raw_message_event)
+        return
+
+    yield msg_cmd(msg.chat, f"@{msg.sender_jid.user} said:\n{et.output}", reply_to=msg.raw_message_event)

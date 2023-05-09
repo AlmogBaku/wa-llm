@@ -1,5 +1,5 @@
 import re
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import List, Generator
 
 from langchain.chains.summarize import load_summarize_chain
@@ -59,8 +59,7 @@ def link_summarizer(links: List[str]) -> Generator[LinkSummary, None, None]:
 
 @message_handler
 def handle_message(ctx: Context, msg: Message) -> CommandResult:
-    # ignore messages older than 30 minutes
-    if msg.timestamp < (datetime.now() - timedelta(minutes=30)):
+    if msg.sent_before(timedelta(minutes=30)):
         return
 
     chat_jid, err = parse_jid(msg.chat)
@@ -83,4 +82,5 @@ def handle_message(ctx: Context, msg: Message) -> CommandResult:
     if len(links) > 0:
         logger.debug(f"Found {len(links)} links")
         for summary in link_summarizer(links):
-            yield msg_cmd(msg.chat, f"Yo, a quick summary for {summary.url}:\n{summary.summary}", reply_to=msg.raw_message_event)
+            yield msg_cmd(msg.chat, f"Yo, a quick summary for {summary.url}:\n{summary.summary}",
+                          reply_to=msg.raw_message_event)

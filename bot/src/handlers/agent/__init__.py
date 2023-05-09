@@ -1,5 +1,5 @@
 import re
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from langchain import OpenAI
 from langchain.agents import initialize_agent, AgentType, load_tools
@@ -14,8 +14,7 @@ from ...events import Context, CommandResult, msg_cmd, Message, message_handler
 
 @message_handler
 def handle_message(ctx: Context, msg: Message) -> CommandResult:
-    # ignore messages older than 30 minutes
-    if msg.timestamp < (datetime.now() - timedelta(minutes=30)):
+    if msg.sent_before(timedelta(minutes=30)):
         return
 
     if not msg.mentioned_me:

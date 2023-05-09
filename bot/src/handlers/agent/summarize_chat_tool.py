@@ -25,7 +25,7 @@ class SummarizeChatHistory(BaseTool):
         "from the 1-1-2021 00:00 to 1-1-2021 23:59."
     )
 
-    prompt_template = """Write a concise summary of the following group chat history by the different topics discussed:
+    prompt_template = """Write a concise summary paragraph per topic discussed in the group chat
 
 
 "{text}"

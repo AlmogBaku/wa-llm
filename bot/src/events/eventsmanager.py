@@ -1,7 +1,7 @@
 import contextvars
 import inspect
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from os.path import basename
 from typing import Callable, List, Optional
 
@@ -80,7 +80,7 @@ class Message:
         self.raw_account_context = event.account_context
         self._text = event.message_event.message.conversation
         self.chat = event.message_event.info.message_source.chat
-        self.timestamp = event.message_event.info.timestamp.ToDatetime()
+        self.timestamp = event.message_event.info.timestamp.ToDatetime().replace(tzinfo=timezone.utc)
 
         self.sender_jid, err = parse_jid(event.message_event.info.message_source.sender)
         if err is not None:
@@ -114,6 +114,9 @@ class Message:
     @property
     def text(self) -> str:
         return self._text.strip()
+
+    def sent_before(self, delta: timedelta) -> bool:
+        return self.timestamp < (datetime.now().astimezone(timezone.utc) - delta)
 
     def text_replace_my_mentions(self, replacement: str) -> str:
         return self.text.replace(f"@{self.my_jid.user}", replacement).strip()
