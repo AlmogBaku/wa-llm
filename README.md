@@ -13,22 +13,30 @@ The project is composed by two main components:
    This component is written in Python and uses the `chat-manager` to interact with Whatsapp. It is using LangChain and
    OpenAI.
 
-# Building the project
+# Running the project
 
 ## Prerequisites
 
 1. Docker
 
-## Running the project
+## Configuring the project variable
+
+1. Copy the `.env.edit` file to `.env` and edit it to your needs.
+    1. You must define the `OPENAI_API_KEY` variable with your own key
+    2. If you wish to use the pre-configured postgres database, there's no need to define it's variable.
+
+## Run the project
 
 ```console
-docker compose up
+docker compose up -d
 ```
 
-# Development
-When running locally, you need to install `whispercpp` package for python.
-This is not included in the `requirements.txt` file because you might need to install it from source.
+## Setting up your bot
 
-```console
-pip install git+https://github.com/aarnphm/whispercpp.git -vv
-```
+1. The first time you connect, the `chat-manager` container will show you a QR code. [Scan it with your Whatsapp
+   mobile application](https://faq.whatsapp.com/1079327266110265/).
+2. Add your bot to the group you wish to use it in (using the mobile app, or another Whatsapp web).
+3. After the bot is running(both `chat-manager` and `bot` containers with no errors), and after the bot got a few
+   messages in some groups, you'll be able to see those groups in the database under the `groups` table.
+4. To allow the bot to interact with the group, you need to set the `managed` column to `true` for the group you wish to
+   use the bot in.
