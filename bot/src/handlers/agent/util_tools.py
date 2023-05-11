@@ -29,7 +29,7 @@ def time_since_today(text: str) -> str:
 
     seconds = int(text.strip())
     ts = datetime.now() - timedelta(seconds=seconds)
-    return (f"Today minus {seconds} seconds is {ts.strftime('%A %d %B %Y')} and tthe time is {ts.strftime('%H:%M')}\n"
+    return (f"Today minus {seconds} seconds is {ts.strftime('%A %d %B %Y')} and the time is {ts.strftime('%H:%M')}\n"
             f"In ISO format this is {ts.isoformat()}")
 
 
